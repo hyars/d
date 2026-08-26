@@ -12,6 +12,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      flex-direction: column;
     }
     #game-container {
       background: #bbada0;
@@ -44,10 +45,35 @@
     .tile[data-value="512"] { background: #edc850; color: #f9f6f2; }
     .tile[data-value="1024"] { background: #edc53f; color: #f9f6f2; }
     .tile[data-value="2048"] { background: #edc22e; color: #f9f6f2; }
+    #game-over {
+      margin-top: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #f65e3b;
+      display: none;
+    }
+    #bio {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 16px;
+      color: #333;
+    }
+    #bio a {
+      color: #3f729b;
+      text-decoration: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div id="game-container"></div>
+  <div id="game-over">Game Over!</div>
+
+  <!-- Instagram-style bio section -->
+  <div id="bio">
+    <p>🎮 Gamer • 💻 Developer • 🌍 Dreamer</p>
+    <p>Follow me on Instagram: <a href="https://instagram.com/yourusername" target="_blank">@yourusername</a></p>
+  </div>
 
   <script>
     const size = 4;
@@ -87,6 +113,9 @@
           container.appendChild(tile);
         }
       }
+      if (isGameOver()) {
+        document.getElementById("game-over").style.display = "block";
+      }
     }
 
     function slide(row) {
@@ -103,58 +132,81 @@
     }
 
     function moveLeft() {
+      let oldBoard = JSON.stringify(board);
       for (let r = 0; r < size; r++) {
         board[r] = slide(board[r]);
       }
-      addRandomTile();
+      if (JSON.stringify(board) !== oldBoard) {
+        addRandomTile();
+      }
       drawBoard();
     }
 
     function moveRight() {
+      let oldBoard = JSON.stringify(board);
       for (let r = 0; r < size; r++) {
         board[r] = slide(board[r].reverse()).reverse();
       }
-      addRandomTile();
+      if (JSON.stringify(board) !== oldBoard) {
+        addRandomTile();
+      }
       drawBoard();
     }
 
     function moveUp() {
+      let oldBoard = JSON.stringify(board);
       for (let c = 0; c < size; c++) {
         let col = [];
         for (let r = 0; r < size; r++) col.push(board[r][c]);
         col = slide(col);
         for (let r = 0; r < size; r++) board[r][c] = col[r];
       }
-      addRandomTile();
+      if (JSON.stringify(board) !== oldBoard) {
+        addRandomTile();
+      }
       drawBoard();
     }
 
     function moveDown() {
+      let oldBoard = JSON.stringify(board);
       for (let c = 0; c < size; c++) {
         let col = [];
         for (let r = 0; r < size; r++) col.push(board[r][c]);
         col = slide(col.reverse()).reverse();
         for (let r = 0; r < size; r++) board[r][c] = col[r];
       }
-      addRandomTile();
+      if (JSON.stringify(board) !== oldBoard) {
+        addRandomTile();
+      }
       drawBoard();
     }
 
-    // Keyboard controls
+    function isGameOver() {
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (board[r][c] === 0) return false;
+          if (c < size-1 && board[r][c] === board[r][c+1]) return false;
+          if (r < size-1 && board[r][c] === board[r+1][c]) return false;
+        }
+      }
+      return true;
+    }
+
     document.addEventListener("keydown", e => {
+      if (document.getElementById("game-over").style.display === "block") return;
       if (e.key === "ArrowLeft") moveLeft();
       else if (e.key === "ArrowRight") moveRight();
       else if (e.key === "ArrowUp") moveUp();
       else if (e.key === "ArrowDown") moveDown();
     });
 
-    // Touch controls for phones
     let startX, startY;
     document.addEventListener("touchstart", e => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
     });
     document.addEventListener("touchend", e => {
+      if (document.getElementById("game-over").style.display === "block") return;
       let dx = e.changedTouches[0].clientX - startX;
       let dy = e.changedTouches[0].clientY - startY;
       if (Math.abs(dx) > Math.abs(dy)) {
